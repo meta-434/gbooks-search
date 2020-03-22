@@ -1,51 +1,42 @@
-import React, {Component} from 'react';
+import React from 'react';
 import Header from './Components/Header';
 import './App.css';
 import SearchBar from "./Components/SearchBar";
-import axios from 'axios';
+import Results from "./Components/Results";
 
 const API_KEY = `AIzaSyCQDAAoCqWAZ5peUp3GLtxZDcXsm9qPe14`
 
 class App extends React.Component {
   constructor(props) {
-    super(props);
+      super(props);
 
-    this.state = {
-        results: {},
-    }
-
-
+      this.state = {
+          results: {},
+          printFilterValue: 'all',
+          typeFilterValue: 'nofilter',
+          searchParams: undefined,
+      }
   }
 
-  updateResults = (res) => {
-      this.setState({results: res})
-        console.log('CHECK RESULTS', this.state.results);
-      if (this.state.results !== {}) {
-          const {results} = this.state.results.data.items;
-          const mappedResults = results.map(book => {
-              return (
-                  <div>
-                      <h2>
-                          {book.volumeInfo.title}
-                      </h2>
-                      <p>
-                          {book.volumeInfo.authors}
-                          `${book.saleInfo.listPrice.amount}${book.saleInfo.listPrice.currencyCode}`
-                      </p>
-                      <p>
-                          {book.searchInfo.textSnippet}
-                      </p>
-                  </div>
-              );
-          });
-          this.setState({mappedResults: mappedResults});
-      } else {
-          const mappedResults = 'Loading...';
-          this.setState({mappedResults: mappedResults});
-      }
-  };
+    handleChangePrint = (e) => {
+        this.setState({printFilterValue: e.target.value});
+    };
 
-  getBooks = (searchTerm, printType, bookType) => {
+    handleChangeType = (e) => {
+        this.setState({typeFilterValue: e.target.value});
+    };
+
+    handleSearchParams = (e) => {
+        this.setState({searchParams: e.target.value});
+    };
+
+    onSubmit = (e) => {
+        e.preventDefault();
+        console.log(this.state);
+        this.getBooks(this.state.searchParams, this.state.printFilterValue, this.state.typeFilterValue);
+    };
+
+    getBooks = (searchTerm, printType, bookType) => {
       console.log(searchTerm, printType, bookType);
       const bt = (bookType === 'nofilter') ? ('') : (`&filter=${bookType}`);
 
@@ -62,23 +53,25 @@ class App extends React.Component {
                   results: data,
                   error: null,
               })
-                  .catch(err => {
-                      this.setState({
-                          error: err.message
-                      })
-                  })
-          })
+          });
   };
 
     render () {
-    return (
-        <div>
-          <Header />
-          <SearchBar getBooks={(searchTerm, printType, bookType)=> this.getBooks(searchTerm, printType, bookType)} />
-          <Results results={this.state.results} />
-        </div>
-
-    );
+        return(
+            <div>
+                <Header/>
+                <SearchBar
+                    handleChangePrint={(e) => this.handleChangePrint(e)}
+                    handleChangeType={(e) => this.handleChangeType(e)}
+                    handleSearchParams={(e) => this.handleSearchParams(e)}
+                    onSubmit={(e) => this.onSubmit(e)}
+                    printFilterValue={this.state.printFilterValue}
+                    typeFilterValue={this.state.typeFilterValue}
+                    searchParams={this.state.searchParams}
+                />
+                <Results results={this.state.results} />
+            </div>
+        );
   }
 }
 
